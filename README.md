@@ -22,8 +22,11 @@ falló más, con una recomendación para practicar.
 
 ## 3. Enlace público
 
-**Pendiente.** El proyecto todavía no se ha publicado, así que aquí no hay una
-dirección verificada. Este apartado se completará cuando exista una URL real.
+**https://heidycortezzzz-cor.github.io/Acento-Fino/**
+
+Verificado el 09/10/2026: la dirección responde y carga la app compilada
+(HTML, CSS y JavaScript con HTTP 200). El repositorio está en
+https://github.com/heidycortezzzz-cor/Acento-Fino
 
 ## 4. Cómo instalarlo y ejecutarlo en otra máquina
 
