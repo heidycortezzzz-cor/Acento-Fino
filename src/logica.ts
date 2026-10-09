@@ -10,16 +10,24 @@
  * CONFIGURACIÓN · todos los valores numéricos configurables
  * ============================================================ */
 export const CONFIG = {
-  /** Duración total de cada partida, en segundos. */
-  DURACION_PARTIDA_SEGUNDOS: 60,
-  /** Puntos que se suman por cada respuesta correcta. */
-  PUNTOS_POR_ACIERTO: 10,
   /** Número máximo de preguntas por partida. */
   NUMERO_PREGUNTAS_PARTIDA: 10,
   /** Opciones mostradas por pregunta (1 correcta + distractores). */
   NUMERO_OPCIONES_POR_PREGUNTA: 3,
   /** Semilla por defecto del generador aleatorio con semilla. */
   SEMILLA_POR_DEFECTO: 20251009,
+  /** Nivel que se juega si no se elige otro. */
+  NIVEL_POR_DEFECTO: 'intermedio',
+  /**
+   * Ajustes de cada nivel:
+   * - segundos: duración de la partida, en segundos.
+   * - puntosPorAcierto: puntos que suma cada respuesta correcta.
+   */
+  niveles: {
+    facil: { segundos: 75, puntosPorAcierto: 10 },
+    intermedio: { segundos: 60, puntosPorAcierto: 15 },
+    dificil: { segundos: 45, puntosPorAcierto: 20 },
+  },
 } as const;
 
 /* ============================================================
@@ -31,6 +39,9 @@ export type Fase = 'inicio' | 'jugando' | 'terminado';
 
 /** Categoría de la palabra según dónde lleva la fuerza de voz. */
 export type TipoPalabra = 'aguda' | 'grave' | 'esdrujula' | 'sobresdrujula';
+
+/** Dificultad elegida: cambia el tiempo, los puntos y qué palabras aparecen. */
+export type Nivel = 'facil' | 'intermedio' | 'dificil';
 
 /** Una palabra del banco, con su forma correcta, sus distractores y su regla. */
 export interface Palabra {
@@ -65,6 +76,8 @@ export interface RespuestaRegistrada {
 /** Estado completo de una partida. */
 export interface Estado {
   fase: Fase;
+  /** Dificultad con la que se está jugando. */
+  nivel: Nivel;
   puntuacion: number;
   aciertos: number;
   errores: number;
@@ -100,6 +113,33 @@ export const NOMBRES_TIPO: Record<TipoPalabra, string> = {
   esdrujula: 'Esdrújula',
   sobresdrujula: 'Sobresdrújula',
 };
+
+/** Nombre legible de cada nivel, para mostrar en pantalla. */
+export const NOMBRES_NIVEL: Record<Nivel, string> = {
+  facil: 'Fácil',
+  intermedio: 'Intermedio',
+  dificil: 'Difícil',
+};
+
+/** Orden en que se muestran los niveles. */
+export const NIVELES: Nivel[] = ['facil', 'intermedio', 'dificil'];
+
+/** Qué categorías de palabra aparecen en cada nivel. */
+const TIPOS_POR_NIVEL: Record<Nivel, TipoPalabra[]> = {
+  facil: ['aguda', 'grave'],
+  intermedio: ['aguda', 'grave', 'esdrujula'],
+  dificil: ['aguda', 'grave', 'esdrujula', 'sobresdrujula'],
+};
+
+/** Duración de una partida según el nivel, en segundos. */
+export function duracionDeNivel(nivel: Nivel): number {
+  return CONFIG.niveles[nivel].segundos;
+}
+
+/** Puntos por respuesta correcta según el nivel. */
+export function puntosDeNivel(nivel: Nivel): number {
+  return CONFIG.niveles[nivel].puntosPorAcierto;
+}
 
 const EXPLICACIONES: Record<TipoPalabra, string> = {
   aguda:
@@ -225,9 +265,14 @@ function barajar<T>(elementos: T[], rng: () => number): T[] {
  * Crea una partida nueva (sin arrancar). Elige las palabras y baraja las
  * opciones de cada pregunta con la semilla indicada, de forma reproducible.
  */
-export function crearEstadoInicial(semilla: number = CONFIG.SEMILLA_POR_DEFECTO): Estado {
+export function crearEstadoInicial(
+  semilla: number = CONFIG.SEMILLA_POR_DEFECTO,
+  nivel: Nivel = CONFIG.NIVEL_POR_DEFECTO,
+): Estado {
   const rng = crearGeneradorSemilla(semilla);
-  const seleccion = barajar(PALABRAS, rng).slice(0, CONFIG.NUMERO_PREGUNTAS_PARTIDA);
+  const permitidos = TIPOS_POR_NIVEL[nivel];
+  const disponibles = PALABRAS.filter((p) => permitidos.includes(p.tipo));
+  const seleccion = barajar(disponibles, rng).slice(0, CONFIG.NUMERO_PREGUNTAS_PARTIDA);
 
   const preguntas: Pregunta[] = seleccion.map((p) => {
     const opciones = barajar([p.correcta, ...p.incorrectas], rng).slice(
@@ -239,10 +284,11 @@ export function crearEstadoInicial(semilla: number = CONFIG.SEMILLA_POR_DEFECTO)
 
   return {
     fase: 'inicio',
+    nivel,
     puntuacion: 0,
     aciertos: 0,
     errores: 0,
-    tiempoRestante: CONFIG.DURACION_PARTIDA_SEGUNDOS,
+    tiempoRestante: duracionDeNivel(nivel),
     preguntas,
     indiceActual: 0,
     historial: [],
@@ -279,7 +325,7 @@ export function responder(estado: Estado, opcion: string): boolean {
   const esCorrecta = opcion === pregunta.correcta;
 
   if (esCorrecta) {
-    estado.puntuacion += CONFIG.PUNTOS_POR_ACIERTO;
+    estado.puntuacion += puntosDeNivel(estado.nivel);
     estado.aciertos += 1;
   } else {
     estado.errores += 1;
@@ -321,8 +367,12 @@ export function finalizarPartida(estado: Estado): boolean {
 }
 
 /** Deja el estado como una partida nueva, sin arrastrar nada de la anterior. */
-export function reiniciar(estado: Estado, semilla: number = CONFIG.SEMILLA_POR_DEFECTO): boolean {
-  Object.assign(estado, crearEstadoInicial(semilla));
+export function reiniciar(
+  estado: Estado,
+  semilla: number = CONFIG.SEMILLA_POR_DEFECTO,
+  nivel: Nivel = estado.nivel,
+): boolean {
+  Object.assign(estado, crearEstadoInicial(semilla, nivel));
   return true;
 }
 

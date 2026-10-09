@@ -189,4 +189,26 @@ retroalimentación y la puntuación. Resultado: **todo funcionó** (palabra
 
 ---
 
+## Prompt 7 — "agregale nive un facil, intermiedo y dificil"
+
+**Prompt enviado (textual):** `agregale nive un facil, intermiedo y dificil`
+
+**Qué hizo el agente:**
+- Agregó el tipo `Nivel` (`facil`, `intermedio`, `dificil`) y agrupó los ajustes
+  de cada nivel en `CONFIG.niveles`, con su tiempo y sus puntos por acierto.
+- Enlazó la dificultad a las categorías de palabra: fácil = agudas y graves;
+  intermedio = además esdrújulas; difícil = además sobresdrújulas.
+- Puso un **selector de nivel** en la pantalla de inicio, mostró el nivel en la
+  consigna durante el juego y en la pantalla de resultados.
+- Escribió 6 pruebas nuevas (nivel fácil solo agudas/graves, intermedio sin
+  sobresdrújulas, difícil con sobresdrújulas, más tiempo/puntos por nivel, etc.):
+  **19 pruebas en verde** y compilación limpia.
+- Verificó la interfaz en un navegador real (headless): los 3 botones aparecen,
+  al elegir Fácil las reglas dicen «75 segundos / 10 puntos», al elegir Difícil
+  «45 segundos / 20 puntos» y al jugar muestra «Nivel Difícil» con «45s».
+
+**¿Hubo que corregir algo?** No.
+
+---
+
 <!-- Los siguientes prompts se agregan a medida que se envían. -->

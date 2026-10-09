@@ -8,6 +8,10 @@ import './estilo.css';
 import {
   CONFIG,
   NOMBRES_TIPO,
+  NOMBRES_NIVEL,
+  NIVELES,
+  duracionDeNivel,
+  puntosDeNivel,
   crearEstadoInicial,
   iniciarPartida,
   responder,
@@ -17,6 +21,7 @@ import {
   porcentajeAciertos,
   analizarErrores,
   type Estado,
+  type Nivel,
   type Pregunta,
 } from './logica';
 
@@ -33,7 +38,8 @@ if (!app) {
   throw new Error('No se encontró el elemento #app en index.html');
 }
 
-let estado: Estado = crearEstadoInicial();
+let nivelElegido: Nivel = CONFIG.NIVEL_POR_DEFECTO;
+let estado: Estado = crearEstadoInicial(CONFIG.SEMILLA_POR_DEFECTO, nivelElegido);
 let pantalla: Pantalla = 'inicio';
 let retro: Retroalimentacion | null = null;
 let temporizador: number | null = null;
@@ -86,7 +92,24 @@ function actualizarTiempo(): void {
  * Vistas
  * ------------------------------------------------------------ */
 
+const DETALLE_NIVEL: Record<Nivel, string> = {
+  facil: 'Agudas y graves',
+  intermedio: 'Agudas, graves y esdrújulas',
+  dificil: 'Todas, incluso sobresdrújulas',
+};
+
 function vistaInicio(): string {
+  const botonesNivel = NIVELES.map((nivel) => {
+    const activo = nivel === nivelElegido ? ' activo' : '';
+    return `
+      <button class="nivel${activo}" type="button" data-nivel="${nivel}" aria-pressed="${nivel === nivelElegido}">
+        <span class="nivel-nombre">${NOMBRES_NIVEL[nivel]}</span>
+        <span class="nivel-detalle">${duracionDeNivel(nivel)}s · ${puntosDeNivel(nivel)} pts por acierto</span>
+        <span class="nivel-detalle">${DETALLE_NIVEL[nivel]}</span>
+      </button>
+    `;
+  }).join('');
+
   return `
     <main class="tarjeta">
       <p class="etiqueta">Ortografía · tildes</p>
@@ -95,10 +118,14 @@ function vistaInicio(): string {
         Poné la tilde donde va, contra el reloj, y descubrí al final en qué
         tipo de palabra te equivocás más.
       </p>
+
+      <h2 class="subtitulo">Elegí el nivel</h2>
+      <div class="niveles">${botonesNivel}</div>
+
       <ul class="reglas">
-        <li>Tenés <strong>${CONFIG.DURACION_PARTIDA_SEGUNDOS} segundos</strong> por partida.</li>
+        <li>Tenés <strong>${duracionDeNivel(nivelElegido)} segundos</strong> por partida.</li>
         <li>Se juegan <strong>${CONFIG.NUMERO_PREGUNTAS_PARTIDA} palabras</strong> como máximo.</li>
-        <li>Cada acierto vale <strong>${CONFIG.PUNTOS_POR_ACIERTO} puntos</strong>.</li>
+        <li>Cada acierto vale <strong>${puntosDeNivel(nivelElegido)} puntos</strong>.</li>
         <li>Al final ves tus resultados y qué categoría te conviene practicar.</li>
       </ul>
       <button id="btn-comenzar" class="btn-primario" type="button">Comenzar</button>
@@ -174,7 +201,7 @@ function vistaJuego(): string {
         </div>
       </header>
 
-      <p class="consigna">¿Cuál es la forma correcta?</p>
+      <p class="consigna">Nivel ${NOMBRES_NIVEL[estado.nivel]} · ¿Cuál es la forma correcta?</p>
       <p class="palabra">${escapar(pregunta.palabra.sinTilde)}</p>
 
       <div id="lista-opciones" class="opciones">${botones}</div>
@@ -205,7 +232,7 @@ function vistaResultados(): string {
 
   return `
     <main class="tarjeta">
-      <p class="etiqueta">Resultados</p>
+      <p class="etiqueta">Resultados · Nivel ${NOMBRES_NIVEL[estado.nivel]}</p>
       <h1 class="titulo titulo-sm">Partida terminada</h1>
 
       <div class="marcador">
@@ -264,6 +291,10 @@ function conectarEventos(): void {
   document.getElementById('btn-resultados')?.addEventListener('click', verResultados);
   document.getElementById('btn-reiniciar')?.addEventListener('click', jugarDeNuevo);
 
+  document.querySelectorAll<HTMLButtonElement>('.nivel').forEach((boton) => {
+    boton.addEventListener('click', () => elegirNivel(boton.dataset.nivel as Nivel));
+  });
+
   document
     .querySelectorAll<HTMLButtonElement>('#lista-opciones .opcion')
     .forEach((boton) => {
@@ -271,11 +302,19 @@ function conectarEventos(): void {
     });
 }
 
+function elegirNivel(nivel: Nivel): void {
+  nivelElegido = nivel;
+  estado = crearEstadoInicial(CONFIG.SEMILLA_POR_DEFECTO, nivelElegido);
+  render();
+}
+
 function enfocarPrimeraOpcion(): void {
   document.querySelector<HTMLButtonElement>('#lista-opciones .opcion')?.focus();
 }
 
 function comenzar(): void {
+  const semilla = Date.now() % 2147483647;
+  estado = crearEstadoInicial(semilla, nivelElegido);
   if (!iniciarPartida(estado)) return;
   pantalla = 'juego';
   retro = null;
@@ -311,7 +350,7 @@ function verResultados(): void {
 function jugarDeNuevo(): void {
   detenerTemporizador();
   const nuevaSemilla = Date.now() % 2147483647;
-  reiniciar(estado, nuevaSemilla);
+  reiniciar(estado, nuevaSemilla, nivelElegido);
   pantalla = 'inicio';
   retro = null;
   render();

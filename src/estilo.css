@@ -96,6 +96,56 @@ body {
   max-width: 42ch;
 }
 
+/* ---------- Selector de nivel ---------- */
+.niveles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 22px;
+}
+
+.nivel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 72px;
+  padding: 12px 10px;
+  font-family: inherit;
+  text-align: left;
+  color: var(--txt);
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid rgba(148, 163, 184, 0.25);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.nivel:hover {
+  transform: translateY(-2px);
+  border-color: var(--cian);
+}
+
+.nivel:focus-visible {
+  outline: 3px solid var(--ambar);
+  outline-offset: 3px;
+}
+
+.nivel.activo {
+  border-color: var(--cian);
+  background: rgba(34, 211, 238, 0.12);
+}
+
+.nivel-nombre {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.nivel-detalle {
+  font-size: 0.78rem;
+  line-height: 1.3;
+  color: var(--txt-soft);
+}
+
 .reglas {
   margin: 0 0 24px;
   padding: 0;
@@ -436,6 +486,10 @@ body {
 
   .marcador {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .niveles {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .hud {
