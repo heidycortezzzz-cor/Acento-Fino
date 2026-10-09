@@ -127,4 +127,66 @@ trabajo.
 
 ---
 
+## Prompt 2 — Publicar en mi repositorio de GitHub
+
+**Prompt enviado:** se compartió la dirección del repositorio
+`https://github.com/heidycortezzzz-cor/Acento-Fino.git`.
+
+**Qué hizo el agente:** inicializó git en `main`, creó los **seis commits con los
+mensajes exactos** de la práctica (`inicio: proyecto creado`, `reglas: logica
+desde mi ficha`, `pruebas: reglas comprobadas`, `pantalla: interfaz basica`,
+`movil: funciona con el dedo`, `docs: readme y publicacion`), agregó el remoto y
+subió la rama. También dejó un flujo de publicación automática en GitHub Pages.
+
+**¿Hubo que corregir algo?** Sí: hizo falta un commit extra para el
+`package-lock.json` y separar el commit de "movil" del de "pantalla".
+
+---
+
+## Prompt 3 — "no me carga, qué debo modificar en page"
+
+**Qué hizo el agente:** diagnosticó que GitHub Pages servía el `index.html` del
+código fuente (con `/src/main.ts`, que el navegador no ejecuta) en lugar de la
+app compilada. Indicó cambiar **Settings → Pages → Source = GitHub Actions** y
+volver a desplegar.
+
+**¿Hubo que corregir algo?** Sí: al cambiar el *Source* no se disparó un
+despliegue nuevo; el agente forzó uno con un commit real (`mejora: color de tema
+movil`).
+
+---
+
+## Prompt 4 — "ya le puse github actions"
+
+**Qué hizo el agente:** verificó con la API de GitHub que la ejecución del
+workflow terminaba en verde y comprobó que la app compilada ya se servía
+(HTML con `./assets/index-...js`, JS y CSS con HTTP 200).
+
+**¿Hubo que corregir algo?** No.
+
+---
+
+## Prompt 5 — "en el navegador me aparece en blanco"
+
+**Qué hizo el agente:** cargó la URL pública en un navegador real (Edge headless)
+y confirmó que la app **sí renderiza** ("Acento Fino" y "Comenzar" aparecen en el
+DOM). Explicó que el blanco era **caché del navegador** de la versión anterior y
+dio los pasos para forzar recarga (Ctrl + Shift + R).
+
+**¿Hubo que corregir algo?** No: era caché del cliente, no un defecto del código.
+
+---
+
+## Prompt 6 — "ahora continúe"
+
+**Qué hizo el agente:** ejecutó una prueba de interfaz de extremo a extremo en un
+navegador real (headless) contra la URL publicada: pulsó "Comenzar", comprobó la
+palabra, las 3 opciones y el temporizador, respondió y verificó la
+retroalimentación y la puntuación. Resultado: **todo funcionó** (palabra
+«camion», 3 opciones, «60s», retroalimentación «¡Correcto! … Aguda», puntos «10»).
+
+**¿Hubo que corregir algo?** No.
+
+---
+
 <!-- Los siguientes prompts se agregan a medida que se envían. -->
